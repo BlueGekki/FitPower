@@ -80,7 +80,6 @@ public class MapDemoActivity extends AppCompatActivity {
 
     //trace dur la map
     private ArrayList<PolylineOptions> maTrace = new ArrayList<PolylineOptions>();
-    //private PolylineOptions maTrace = new PolylineOptions();
 
     private Button suivi; //activer ou désactiver le suivi
     boolean suiviPos = true;
@@ -124,13 +123,8 @@ public class MapDemoActivity extends AppCompatActivity {
                 }
             });
         } else {
-            //Toast.makeText(this, "Error - Map Fragment was null!!", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "Erreur - Map Fragment est null!!", Toast.LENGTH_SHORT).show();
         }
-        //veille
-        /*
-        PowerManager pm = (PowerManager) this.getSystemService(Context.POWER_SERVICE);
-        wl = pm.newWakeLock(PowerManager.ON_AFTER_RELEASE, this.getClass().getName());
-        */
         //Chronomètre
         this.chronometer = findViewById(R.id.chronometer);
     }
@@ -147,24 +141,21 @@ public class MapDemoActivity extends AppCompatActivity {
     public void pauseChronometer(View v){
         if(this.etatCourse == "enCour"){
             this.chronometer.stop();
-            //
-            Date dateMtn =  new Date();
+
+            //mise en pause du temps de l'activité
+            Date dateMtn = new Date();
             long date1 = this.dateDebut.getTime();
             long date2 = dateMtn.getTime();
-            long temp = date2 - date1;
-            float temp2 = temp / 3600000.0f;
-            this.tempActivite = this.tempActivite + (temp2*60);
+            long temps = date2 - date1;
+            this.tempActivite = temps / 60000;
+
             this.pauseOffset = SystemClock.elapsedRealtime() - this.chronometer.getBase();
-            //
             this.etatCourse = "enPause";
         }
     }
     public void restChronometer(View v){
         this.chronometer.stop();
         // pas oublier de prendre le screen
-
-        //Chrono de l'activité
-        //String tempsFinal = SystemClock.elapsedRealtime() - this.pauseOffset+" ";
 
         this.chronometer.setBase(SystemClock.elapsedRealtime() - this.pauseOffset);
         //
@@ -173,19 +164,11 @@ public class MapDemoActivity extends AppCompatActivity {
         long date1 = this.dateDebut.getTime();
         long date2 = dateMtn.getTime();
         long temps = date2 - date1;
-        long temps2 = temps / 60000;
-        this.tempActivite = this.tempActivite + (temps2*60);
-        //Toast.makeText(this, tempActivite+"", Toast.LENGTH_SHORT).show();
+        this.tempActivite = temps / 60000;
 
-        Log.i("Durée",temps2+"");
+        Log.i("Durée",this.tempActivite+"");
         Log.i("Date début",this.dateDebut+"");
 
-       //long temps = this.chronometer.getBase();
-        //String temps = this.chronometer.get
-    //CountDownTimer
-        //temps = temps ;
-        //Log.i("Durée",tempActivite+"");
-        //
         this.etatCourse = "Fini";
         this.chronometer.setBase(SystemClock.elapsedRealtime());
         this.pauseOffset = 0;
@@ -201,14 +184,7 @@ public class MapDemoActivity extends AppCompatActivity {
         }
         Toast.makeText(this, distance+"", Toast.LENGTH_SHORT).show();
         Log.i("Distance",distance+"");
-        /*for (int i = 0; i < this.maTrace.getPoints().size()-1; i++) {
-            distance = distance + this.getDistance(new LatLng(this.maTrace.getPoints().get(i).latitude,this.maTrace.getPoints().get(i).longitude)
-                    ,new LatLng(this.maTrace.getPoints().get(i+1).latitude,this.maTrace.getPoints().get(i+1).longitude));
-        }
-        Toast.makeText(this, distance+"", Toast.LENGTH_SHORT).show();
-        //clear le trace
-        this.maTrace.getPoints().clear();*/
-        // pas oublier de prendre le screen
+
         this.maTrace.clear();
         this.map.clear();
 
@@ -250,7 +226,7 @@ public class MapDemoActivity extends AppCompatActivity {
             MapDemoActivityPermissionsDispatcher.getMyLocationWithPermissionCheck(this);
             MapDemoActivityPermissionsDispatcher.startLocationUpdatesWithPermissionCheck(this);
         } else {
-            //Toast.makeText(this, "Error - Map was null!!", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "Erreur - Map est null!!", Toast.LENGTH_SHORT).show();
         }
     }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -285,7 +261,7 @@ public class MapDemoActivity extends AppCompatActivity {
     }
 
     /*
-     * Called when the Activity becomes visible.
+     * Appelé lorsque l'activité devient visible.
     */
     @Override
     protected void onStart() {
@@ -296,7 +272,7 @@ public class MapDemoActivity extends AppCompatActivity {
     }
 
     /*
-     * Called when the Activity is no longer visible.
+     * Appelé lorsque l'activité n'est plus visible.
 	 */
     @Override
     protected void onStop() {
@@ -307,21 +283,21 @@ public class MapDemoActivity extends AppCompatActivity {
     }
 
     private boolean isGooglePlayServicesAvailable() {
-        // Check that Google Play services is available
+        // Vérifie que les services Google Play sont disponibles
         int resultCode = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-        // If Google Play services is available
+        // Si les services Google Play sont disponibles
         if (ConnectionResult.SUCCESS == resultCode) {
-            // In debug mode, log the status
+            // En mode débogage, enregistre le statut
             Log.d("Location Updates", "Google Play services is available.");
             return true;
         } else {
-            // Get the error dialog from Google Play services
+            //  Boîte de dialogue d'erreur des services Google Play
             Dialog errorDialog = GooglePlayServicesUtil.getErrorDialog(resultCode, this,
                     CONNECTION_FAILURE_RESOLUTION_REQUEST);
 
-            // If Google Play services can provide an error dialog
+            // Si les services Google Play peuvent fournir une boîte de dialogue d'erreur
             if (errorDialog != null) {
-                // Create a new DialogFragment for the error dialog
+                // Créer un nouveau DialogFragment pour la boîte de dialogue d'erreur
                 ErrorDialogFragment errorFragment = new ErrorDialogFragment();
                 errorFragment.setDialog(errorDialog);
                 errorFragment.show(getSupportFragmentManager(), "Location Updates");
@@ -335,15 +311,15 @@ public class MapDemoActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        // Display the connection status
+        //Affiche l'état de la connexion
 
         if (mCurrentLocation != null) {
-            //Toast.makeText(this, "GPS location was found!", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "La localisation GPS a été trouvée !", Toast.LENGTH_SHORT).show();
             LatLng latLng = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
             CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 17);
             map.animateCamera(cameraUpdate);
         } else {
-            //Toast.makeText(this, "Current location was null, enable GPS on emulator!", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "La position est nulle, activez le GPS !", Toast.LENGTH_SHORT).show();
         }
         MapDemoActivityPermissionsDispatcher.startLocationUpdatesWithPermissionCheck(this);
     }
@@ -361,7 +337,7 @@ public class MapDemoActivity extends AppCompatActivity {
 
         SettingsClient settingsClient = LocationServices.getSettingsClient(this);
         settingsClient.checkLocationSettings(locationSettingsRequest);
-        //noinspection MissingPermission
+
         getFusedLocationProviderClient(this).requestLocationUpdates(mLocationRequest, new LocationCallback() {
                     @Override
                     public void onLocationResult(LocationResult locationResult) {
@@ -373,29 +349,29 @@ public class MapDemoActivity extends AppCompatActivity {
     }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public void onLocationChanged(Location location) {
-        // GPS may be turned off
+        // le GPS peut être désactivé
         if (location == null) {
             return;
         }
 
-        // Report to the UI that the location was updated
+        //Signaler à l'utilisateur que l'emplacement a été mis à jour
 
         mCurrentLocation = location;
-        String msg = "Updated Location: " +
+        String msg = "Mise à jour localisation: " +
                 Double.toString(location.getLatitude()) + "," +
                 Double.toString(location.getLongitude());
         //Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
         //Actualise la map
         if (mCurrentLocation != null) {
             if(this.suiviPos == true){
-                //Toast.makeText(this, "GPS location was found!", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(this, "La localisation GPS a été trouvée!", Toast.LENGTH_SHORT).show();
                 LatLng latLng = new LatLng(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
                 CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 17);
                 map.animateCamera(cameraUpdate);
             }
 
 
-            //marker à utiliser pour voir le parcourt
+            //Tracé du GPS
             if(this.etatCourse == "enCour"){
 
                 this.maTrace.get(this.maTrace.size()-1).add(new LatLng(mCurrentLocation.getLatitude(),mCurrentLocation.getLongitude()));
@@ -405,22 +381,12 @@ public class MapDemoActivity extends AppCompatActivity {
                 for(int i = 0 ; i < this.maTrace.size() ; i++){
                    this.map.addPolyline(this.maTrace.get(i));
                 }
-
-
-
-                /*
-                HashMap<String, String> markers = new HashMap<>();
-                Marker marker = map.addMarker(new MarkerOptions().position(new LatLng(mCurrentLocation.getLatitude(),mCurrentLocation.getLongitude())).title("marker").snippet(""));
-                //marker.setVisible(false);
-                i = i+1;
-                markers.put(marker.getId(),""+this.i);
-                */
             }
 
 
         }
         else {
-            //Toast.makeText(this, "Current location was null, enable GPS on emulator!", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "La position actuelle est nulle, activez le GPS !", Toast.LENGTH_SHORT).show();
         }
     }
 ////////////////////////////////////////////////////////////////////////////////////
@@ -429,24 +395,24 @@ public class MapDemoActivity extends AppCompatActivity {
         super.onSaveInstanceState(savedInstanceState);
     }
 
-    // Define a DialogFragment that displays the error dialog
+    // Définir un DialogFragment qui affiche la boîte de dialogue d'erreur
     public static class ErrorDialogFragment extends android.support.v4.app.DialogFragment {
 
-        // Global field to contain the error dialog
+        // Champ global contenant la boîte de dialogue d'erreur
         private Dialog mDialog;
 
-        // Default constructor. Sets the dialog field to null
+        // Constructeur par défaut. Définit le champ de dialogue sur null
         public ErrorDialogFragment() {
             super();
             mDialog = null;
         }
 
-        // Set the dialog to display
+        // modifie la boite de dialogue
         public void setDialog(Dialog dialog) {
             mDialog = dialog;
         }
 
-        // Return a Dialog to the DialogFragment.
+        // retourne la boite de dialogue.
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             return mDialog;
