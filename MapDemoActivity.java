@@ -54,6 +54,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -65,9 +66,6 @@ import static com.google.android.gms.location.LocationServices.getFusedLocationP
 
 @RuntimePermissions
 public class MapDemoActivity extends AppCompatActivity {
-
-    //veille
-    private PowerManager.WakeLock wl;
 
     private SupportMapFragment mapFragment;
     private GoogleMap map;
@@ -85,21 +83,22 @@ public class MapDemoActivity extends AppCompatActivity {
     boolean suiviPos = true;
 
     //temps
-    private float tempActivite = 0;
+    private double tempActivite = 0;
     private Date dateDebut ;
 
-    //private Button start, pause, fin;
     private Chronometer chronometer;
     private long pauseOffset;
 
+    //private Button start, pause, fin;
+    private Button buttonStart;
+    private Button buttonPause;
+    private Button buttonFin;
+
     private final static String KEY_LOCATION = "location";
 
-    /*
-     * Define a request code to send to Google Play services This code is
-     * returned in Activity.onActivityResult
-     */
+
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
-/////////////////////////////////////////////////////////////////////////////////////////
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -127,15 +126,29 @@ public class MapDemoActivity extends AppCompatActivity {
         }
         //Chronomètre
         this.chronometer = findViewById(R.id.chronometer);
+
+        //button start pause en test
+        /*this.buttonStart = (Button) this.findViewById(R.id.start);
+        this.buttonPause = (Button) this.findViewById(R.id.pause);
+        this.buttonFin = (Button) this.findViewById(R.id.Fin);
+        this.buttonFin.setVisibility(View.GONE);
+        this.buttonPause.setVisibility(View.GONE);*/
     }
-    /////////////////////////////////////////////////////
+
     public void startChronometer(View v){
         if(this.etatCourse != "enCour"){
             this.maTrace.add(new PolylineOptions());
+            // initialise la date
             this.dateDebut = new Date();
+
             this.chronometer.setBase(SystemClock.elapsedRealtime() - this.pauseOffset);
             this.chronometer.start();
             this.etatCourse = "enCour";
+
+            //visibilité des buttons
+            /*this.buttonStart.setVisibility(View.GONE);
+            this.buttonFin.setVisibility(View.VISIBLE);
+            this.buttonPause.setVisibility(View.VISIBLE);*/
         }
     }
     public void pauseChronometer(View v){
@@ -143,71 +156,84 @@ public class MapDemoActivity extends AppCompatActivity {
             this.chronometer.stop();
 
             //mise en pause du temps de l'activité
-            Date dateMtn = new Date();
-            long date1 = this.dateDebut.getTime();
-            long date2 = dateMtn.getTime();
-            long temps = date2 - date1;
-            this.tempActivite = temps / 60000;
+            this.tempActivite += getDuree();
+
 
             this.pauseOffset = SystemClock.elapsedRealtime() - this.chronometer.getBase();
             this.etatCourse = "enPause";
+
+            //visibilité des bouttons
+            /*this.buttonPause.setVisibility(View.GONE);
+            this.buttonStart.setVisibility(View.VISIBLE);*/
         }
     }
     public void restChronometer(View v){
-        this.chronometer.stop();
-        // pas oublier de prendre le screen
+        if(this.etatCourse == "enCour" || this.etatCourse == "enPause" ){
+            this.chronometer.stop();
+            // pas oublier de prendre le screen
 
-        this.chronometer.setBase(SystemClock.elapsedRealtime() - this.pauseOffset);
-        //
+            this.chronometer.setBase(SystemClock.elapsedRealtime() - this.pauseOffset);
 
-        Date dateMtn = new Date();
-        long date1 = this.dateDebut.getTime();
-        long date2 = dateMtn.getTime();
-        long temps = date2 - date1;
-        this.tempActivite = temps / 60000;
+            //calcule la difference de temps entre la date de début et maintenant
+            this.tempActivite += getDuree();
+            String tempsActiviteRetour = new SimpleDateFormat("HH:mm:ss").format(this.tempActivite);
 
-        Log.i("Durée",this.tempActivite+"");
-        Log.i("Date début",this.dateDebut+"");
+            Log.i("Durée", tempsActiviteRetour + "");
+            Log.i("Date début", this.dateDebut+ "");
+            Toast.makeText(this, "Durée : "+ tempsActiviteRetour + "", Toast.LENGTH_SHORT).show();
 
-        this.etatCourse = "Fini";
-        this.chronometer.setBase(SystemClock.elapsedRealtime());
-        this.pauseOffset = 0;
+            this.etatCourse = "Fini";
+            this.chronometer.setBase(SystemClock.elapsedRealtime());
+            this.pauseOffset = 0;
 
-        //calcule la distance parcourue
-        float distance = 0;
+            //calcule la distance parcourue
+            float distance = 0;
 
-        for(int i = 0; i < this.maTrace.size(); i++){
-            for(int b = 0; b < this.maTrace.get(i).getPoints().size()-1; b++){
-                distance = distance + this.getDistance(new LatLng(this.maTrace.get(i).getPoints().get(b).latitude,this.maTrace.get(i).getPoints().get(b).longitude)
-                        ,new LatLng(this.maTrace.get(i).getPoints().get(b+1).latitude,this.maTrace.get(i).getPoints().get(b+1).longitude));
+            for (int i = 0; i < this.maTrace.size(); i++) {
+                for (int b = 0; b < this.maTrace.get(i).getPoints().size() - 1; b++) {
+                    distance = distance + this.getDistance(new LatLng(this.maTrace.get(i).getPoints().get(b).latitude, this.maTrace.get(i).getPoints().get(b).longitude)
+                            , new LatLng(this.maTrace.get(i).getPoints().get(b + 1).latitude, this.maTrace.get(i).getPoints().get(b + 1).longitude));
+                }
             }
+            Toast.makeText(this, "Distance : " + distance + "", Toast.LENGTH_SHORT).show();
+            Log.i("Distance", distance + "");
+
+            //Visibilité des bouttons
+            /*this.buttonFin.setVisibility(View.GONE);
+            this.buttonStart.setVisibility(View.VISIBLE);
+            this.buttonPause.setVisibility(View.GONE);*/
+
+            this.tempActivite = 0;
+            this.maTrace.clear();
+            this.map.clear();
         }
-        Toast.makeText(this, distance+"", Toast.LENGTH_SHORT).show();
-        Log.i("Distance",distance+"");
-
-        this.maTrace.clear();
-        this.map.clear();
-
-
     }
-    ///////////////////////////////////
+    // retourne la distance entre deux points
     private float getDistance(LatLng my_latlong, LatLng frnd_latlong) {
-        Location l1 = new Location("One");
+        Location l1 = new Location("1");
         l1.setLatitude(my_latlong.latitude);
         l1.setLongitude(my_latlong.longitude);
 
-        Location l2 = new Location("Two");
+        Location l2 = new Location("2");
         l2.setLatitude(frnd_latlong.latitude);
         l2.setLongitude(frnd_latlong.longitude);
 
         //distance M
         float distance = l1.distanceTo(l2);
-        //distance km
+        //distance KM
         distance = distance / 1000.0f;
 
         return distance;
     }
-    ///////////////////////////
+
+    //retourne la difference de temps entre la date de début et maintenant
+    public long getDuree(){
+        Date date = new Date();
+        Log.i("date début", this.dateDebut.getTime() + "");
+        Log.i("date MTN", date .getTime() + "");
+        return date.getTime() - this.dateDebut.getTime();
+    }
+
     // Permet de suivre la postion
     public void suiviPosition (View v){
         if(this.suiviPos == true ){
@@ -217,7 +243,7 @@ public class MapDemoActivity extends AppCompatActivity {
             this.suiviPos = true;
         }
     }
-//////////////////////////////////////////////////////////////////////////////////////////////////
+
     protected void loadMap(GoogleMap googleMap) {
         map = googleMap;
         if (map != null) {
@@ -229,7 +255,7 @@ public class MapDemoActivity extends AppCompatActivity {
             //Toast.makeText(this, "Erreur - Map est null!!", Toast.LENGTH_SHORT).show();
         }
     }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -347,7 +373,7 @@ public class MapDemoActivity extends AppCompatActivity {
                 Looper.myLooper());
 
     }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
     public void onLocationChanged(Location location) {
         // le GPS peut être désactivé
         if (location == null) {
@@ -389,7 +415,7 @@ public class MapDemoActivity extends AppCompatActivity {
             //Toast.makeText(this, "La position actuelle est nulle, activez le GPS !", Toast.LENGTH_SHORT).show();
         }
     }
-////////////////////////////////////////////////////////////////////////////////////
+
     public void onSaveInstanceState(Bundle savedInstanceState) {
         savedInstanceState.putParcelable(KEY_LOCATION, mCurrentLocation);
         super.onSaveInstanceState(savedInstanceState);
@@ -418,5 +444,5 @@ public class MapDemoActivity extends AppCompatActivity {
             return mDialog;
         }
     }
-///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 }
